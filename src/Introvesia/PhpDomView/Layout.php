@@ -66,10 +66,12 @@ class Layout
 
 	public function parse()
 	{
-		$file_name = $this->config['path'] . DIRECTORY_SEPARATOR . $this->config['name'] . '.html';
-		if (file_exists($file_name)) {
-			$this->content = file_get_contents($file_name);
+		$file_name = $this->config['path'] . $this->config['name'] . '.html';
+		if (!file_exists($file_name)) {
+			throw new \Exception('Layout file not found: ' . $file_name, 500);
 		}
+
+		$this->content = file_get_contents($file_name);
 		if (empty($this->content)) {
 			return;
 		}
@@ -101,35 +103,38 @@ class Layout
 		$nodes = $this->dom->getElementsByTagName('c.content');
 		$node = $nodes->item(0);
 		if ($node) {
-			if (file_exists($this->config['view'])) {
-				$content = file_get_contents($this->config['view']);
-				$dom = new View($content, $this->data, $this->config);
-				$dom->parse();
-				$element = $this->dom->createTextNode($dom->getOutput());
-				$view_parent = $node->parentNode;
-				$view_parent->insertBefore($element, $node);
-				$view_parent->removeChild($node);
+			if (!file_exists($this->config['view'])) {
+				throw new \Exception('View not found: ' . $this->config['view'], 500);
+				
+			}
 
-				$head = $this->dom->getElementsByTagName('head')->item(0);
-				$body = $this->dom->getElementsByTagName('body')->item(0);
+			$content = file_get_contents($this->config['view']);
+			$dom = new View($content, $this->data, $this->config);
+			$dom->parse();
+			$element = $this->dom->createTextNode($dom->getOutput());
+			$view_parent = $node->parentNode;
+			$view_parent->insertBefore($element, $node);
+			$view_parent->removeChild($node);
 
-				// Apply styles
-				foreach ($dom->getStyles() as $item_node) {
-					$imported_node = $this->dom->importNode($item_node, true);
-					$head->appendChild($imported_node);
-				}
+			$head = $this->dom->getElementsByTagName('head')->item(0);
+			$body = $this->dom->getElementsByTagName('body')->item(0);
 
-				// Apply scripts		
-				foreach ($this->scripts as $item_node) {
-					$imported_node = $this->dom->importNode($item_node, true);
-					$body->appendChild($imported_node);
-				}
+			// Apply styles
+			foreach ($dom->getStyles() as $item_node) {
+				$imported_node = $this->dom->importNode($item_node, true);
+				$head->appendChild($imported_node);
+			}
 
-				// Apply scripts		
-				foreach ($dom->getScripts() as $item_node) {
-					$imported_node = $this->dom->importNode($item_node, true);
-					$body->appendChild($imported_node);
-				}
+			// Apply scripts		
+			foreach ($this->scripts as $item_node) {
+				$imported_node = $this->dom->importNode($item_node, true);
+				$body->appendChild($imported_node);
+			}
+
+			// Apply scripts		
+			foreach ($dom->getScripts() as $item_node) {
+				$imported_node = $this->dom->importNode($item_node, true);
+				$body->appendChild($imported_node);
 			}
 		}
 
