@@ -6,7 +6,7 @@
  * @author Ahmad <rawndummy@gmail.com>
  */
 
-namespace PhpDomView;
+namespace Introvesia\PhpDomView;
 
 class Layout
 {
