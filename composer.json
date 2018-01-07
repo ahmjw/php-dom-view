@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Introvesia\\PhpDomView\\": "src/"
+            "Introvesia\\PhpDomView\\": "src/Introvesia/PhpDomView"
         }
     }
 }
