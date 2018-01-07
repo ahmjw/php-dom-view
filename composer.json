@@ -1,0 +1,23 @@
+{
+    "name": "ahmjw/php-dom-view",
+    "description": "Renders output to HTML view via DOM",
+    "homepage": "https://chupoo.introvesia.com",
+    "keywords": ["php", "dom", "view"],
+    "license": "apache-2.0",
+    "authors": [
+        {
+            "name": "Ahmad",
+            "email": "rawndummy@gmail.com",
+            "homepage": "http://twitter.com/ahmjw"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {
+        "php": ">=5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "PhpDomView\\": "src/"
+        }
+    }
+}
