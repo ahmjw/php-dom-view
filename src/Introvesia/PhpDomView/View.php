@@ -7,23 +7,23 @@
  */
 namespace Introvesia\PhpDomView;
 
-class View
+class View extends Dom
 {
-	private $dom;
 	private $content;
 	private $scripts = array();
 	private $styles = array();
-	private $config = array();
-	private $data = array();
-	private $xpath;
-
-	public $doCloning = true;
+	private $layout_name;
 
 	public function __construct($content, array $data = array(), array $config = array())
 	{
 		$this->content = $content;
 		$this->data = $data;
 		$this->config = $config;
+	}
+
+	public function getLayoutName()
+	{
+		return $this->layout_name;
 	}
 
 	public function getOutput()
@@ -97,130 +97,18 @@ class View
 			}
 		}
 
+		// Read setting
+		$nodes = $this->dom->getElementsByTagName('c.config');
+		$node = $nodes->item(0);
+		if ($node) {
+			$this->layout_name = $node->getAttribute('layout');
+			$parent = $node->parentNode;
+			$parent->removeChild($node);
+		}
+
 		$this->applyUrl();
 		$this->separateStyle();
 		$this->separateScript();
-	}
-
-	private function setElementContent($node, $value)
-	{
-		if ($node->tagName == 'input') {
-			$node->setAttribute('value', $value);
-		} else if ($node->tagName == 'a') {
-			$node->setAttribute('href', $value);
-		} else  {
-			$node->nodeValue = htmlentities($value);
-		}
-	}
-
-	private function parseToElement($key, $value)
-	{
-		$results = $this->xpath->query("//*[@c." . $key . "]");
-
-		if ($results->length > 0) {
-			// Get HTML
-			$origin_node = $results->item(0);
-			$parent = $origin_node->parentNode;
-			unset($this->data[$key]);
-			// Apply data
-			foreach ($value as $key2 => $value2) {
-				@$node = $origin_node->cloneNode(true);
-				$node_id = 'c.' . $key . $key2;
-				$node->setAttribute('id', $node_id);
-				$node->setAttribute('rel', $key2);
-				$parent->appendChild($node);
-
-				if (isset($value2[0]) && is_array($value2[0])) {
-					foreach ($value2[0] as $key3 => $value3) {
-						$node->setAttribute($key3, $value3);
-					}
-				}
-				
-				if (is_array($value2)) {
-					foreach ($value2 as $key3 => $value3) {
-						$this->parseToNode($node_id, $key, $key2, $key3, $value3);
-					}
-				} else {
-					$this->setElementContent($node, $value2);
-				}
-			}
-			$parent->removeChild($origin_node);
-		} else {
-			$node = $this->dom->getElementById($key);
-			if ($node && is_array($value)) {
-				foreach ($value as $key2 => $value2) {
-					if (is_numeric($key2)) {
-						$this->setElementContent($node, $value2);
-					} else{
-						$node->setAttribute($key2, $value2);
-					}
-				}
-			}
-		}
-	}
-
-	private function parseToNode($node_id, $node_name, $id, $key, $value)
-	{
-		$query = "//*[@c." . $node_name . "][@id='" . $node_id . "']/*[@c." . $key . "]";
-		$results = $this->xpath->query($query);
-
-		if ($results->length > 0) {
-			$child_node = $results->item(0);
-			$child_node->setAttribute('rel', $id);
-			$child_node->setAttribute('id', 'c.' . $key . $id);
-
-			if (is_array($value)) {
-				foreach ($value as $key2 => $value2) {
-					if ($key2 === 0) {
-						$child_node->nodeValue = $value2;
-					} else {
-						$child_node->setAttribute($key2, $value2);
-					}
-				}
-			} else {
-				$this->setElementContent($child_node, $value);
-			}
-		}
-	}
-
-	private function applyUrl()
-	{
-		// CSS
-		$nodes = $this->dom->getElementsByTagName('link');
-		foreach ($nodes as $node) {
-			$url = $node->getAttribute('href');
-			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['layout_url'] . '/' . trim($url, ':');
-				$node->setAttribute('href', $url);
-			}
-		}
-		// JS
-		$nodes = $this->dom->getElementsByTagName('script');
-		foreach ($nodes as $node) {
-			$url = $node->getAttribute('src');
-			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['layout_url'] . '/' . trim($url, ':');
-				$node->setAttribute('src', $url);
-			}
-		}
-		// Image
-		$nodes = $this->dom->getElementsByTagName('img');
-		foreach ($nodes as $node) {
-			$url = $node->getAttribute('src');
-			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['layout_url'] . '/' . trim($url, ':');
-				$node->setAttribute('src', $url);
-			}
-		}
-		// Anchor
-		$nodes = $this->dom->getElementsByTagName('a');
-		foreach ($nodes as $node) {
-			$url = $node->getAttribute('href');
-			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['base_url'] . '/' . trim($url, ':');
-				$node->setAttribute('href', $url);
-			}
-		}
 	}
 
 	public function separateScript()
@@ -267,9 +155,5 @@ class View
 			$parent = $node->parentNode;
 			$parent->removeChild($node);
 		}
-	}
-
-	private function applyVisibility()
-	{
 	}
 }
