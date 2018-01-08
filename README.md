@@ -1,1 +1,14 @@
 Renders output to HTML view via DOM
+
+# Special HTML Tags
+## c.content
+By writing `<c.content></c.content>` or `<c.content />` in your HTML template, it will replace it with view's content.
+## c.import
+You can call another HTML file by writing `<c.import name="menu"></c.import>` or `<c.import name="menu" />`. Write the name of HTML template in attribut `name`. The value `menu` will call HTML template file with name "menu.html". It will replace it with the content of called HTML file.
+## c.config
+By writing `<c.config layout="two-columns"></c.config>` or `<c.config layout="two-columns" />` in view HTML, it will execute layout as it declared. Write the name of HTML template in attribut `layout`. The value `two-columns` will call HTML template file with name "two-columns.html".
+## c.widget
+It will mark the area as widget area. In it process, system will collect all widgets and store it to widget list. It will render widget HTML file when you send the widget information as feedback. To mark area to show it as widget, write `<c.widget name="sidebar"></c.widget>` or `<c.widget name="sidebar" />`. Write the widget key in attribut `name`. It will put the `name` value to widget list.
+
+# Extracting Variables to HTML
+You can extract variable to HTML by defining data with key and value. This library will render the data to HTML element by key. It compares key of data and the specified special attribute in a HTML element.
