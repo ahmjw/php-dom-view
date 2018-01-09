@@ -62,12 +62,13 @@ class Layout extends Dom
 
 	public function renderWidget($key, $data)
 	{
+		$parent = $this->widget_keys[$key]->parentNode;
 		foreach ($data as $dom) {
 			$dom->parse();
 			$element = $this->dom->createTextNode($dom->getOutput());
-			$parent = $this->widget_keys[$key]->parentNode;
 			$parent->insertBefore($element, $this->widget_keys[$key]);
 		}
+		$parent->removeChild($this->widget_keys[$key]);
 	}
 
 	public function parse($view = null)
@@ -79,15 +80,11 @@ class Layout extends Dom
 		// Layout importing
 		$nodes = $this->dom->getElementsByTagName('c.import');
 		foreach ($nodes as $node_import) {
-			$name = $this->config['dir'] . DIRECTORY_SEPARATOR . $node_import->getAttribute('name') . '.html';
 			$parent = $node_import->parentNode;
-			if (file_exists($name)) {
-				$content = file_get_contents($name);
-				$dom = new View($content, array(), $this->config);
-				$dom->parse();
-				$element = $this->dom->createTextNode($dom->getOutput()); 
-				$parent->appendChild($element);
-			}
+			$dom = new LayoutPart($node_import->getAttribute('name'), array());
+			$dom->parse();
+			$element = $this->dom->createTextNode($dom->getOutput()); 
+			$parent->appendChild($element);
 		}
 
 		// Yield content
