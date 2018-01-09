@@ -18,11 +18,21 @@ class Dom
 
 	protected function loadDom($dir_config_key)
 	{
-		$path = str_replace('/', DIRECTORY_SEPARATOR, Config::getData($dir_config_key)) . DIRECTORY_SEPARATOR . $this->name . '.html';
+		$dir = str_replace('/', DIRECTORY_SEPARATOR, Config::getData($dir_config_key)) . DIRECTORY_SEPARATOR;
+		$path = $dir . $this->name . '.html';
 		if (!file_exists($path)) {
 			throw new \Exception('Failed to load file: ' . $path, 500);
 		}
 		$this->content = file_get_contents($path);
+		if (get_class($this)=='Introvesia\PhpDomView\Layout'){
+			$this->content = preg_replace_callback('/<c\.partial\sname="(.+)?"><\/c\.partial>/', function($match) use($dir) {
+				$path = $dir . $match[1] . '.html';
+				if (!file_exists($path)) {
+					throw new \Exception('Failed to load file: ' . $path, 500);
+				}
+				return file_get_contents($path);
+			}, $this->content);
+		}
 		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
 		$this->dom = new \DomDocument();
 		@$this->dom->loadHTML($content);
@@ -95,6 +105,7 @@ class Dom
 				if (isset($value2[0]) && is_array($value2[0])) {
 					foreach ($value2[0] as $key3 => $value3) {
 						$node->setAttribute($key3, $value3);
+						$node->removeAttribute('c.' . $key3);
 					}
 				}
 				
@@ -108,17 +119,6 @@ class Dom
 				$node->removeAttribute('c.' . $key);
 			}
 			$parent->removeChild($origin_node);
-		} else {
-			$node = $this->dom->getElementById($key);
-			if ($node && is_array($value)) {
-				foreach ($value as $key2 => $value2) {
-					if (is_numeric($key2)) {
-						$this->setElementContent($node, $value2);
-					} else{
-						$node->setAttribute($key2, $value2);
-					}
-				}
-			}
 		}
 	}
 
@@ -143,6 +143,7 @@ class Dom
 			} else {
 				$this->setElementContent($child_node, $value);
 			}
+			$child_node->removeAttribute('c.' . $key);
 		}
 	}
 
