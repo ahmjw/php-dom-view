@@ -72,8 +72,8 @@ class Layout extends Dom
 
 	public function parse($view = null)
 	{
-		$this->applyVisibility();
 		$this->applyVars();
+		$this->applyVisibility();
 		$this->applyUrl();
 
 		// Layout importing

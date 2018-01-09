@@ -36,10 +36,17 @@ class Dom
 				$this->parseToElement($key, $value);
 			} else {
 				$results = @$this->xpath->query("//*[@c." . $key . "]");
-
 				if ($results->length > 0) {
 					// Get HTML
 					$node = $results->item(0);
+					if ($node->hasAttribute('c.if')) {
+						$expression = $node->getAttribute('c.if');
+						$node->removeAttribute('c.if');
+						$condition_control = new ConditionRenderer($expression, $this->data, $value);
+						if (!$condition_control->getResult()) {
+							$node->parentNode->removeChild($node);
+						}
+					}
 					$node->removeAttribute('c.' . $key);
 					$this->setElementContent($node, $value);
 				}
@@ -141,10 +148,20 @@ class Dom
 
 	protected function applyVisibility()
 	{
-	}
-
-	protected function replaceNode()
-	{
+		$results = @$this->xpath->query("//*[@c.if]");
+		if ($results->length > 0) {
+			// Get HTML
+			$node = $results->item(0);
+			if ($node->hasAttribute('c.if')) {
+				$expression = $node->getAttribute('c.if');
+				$node->removeAttribute('c.if');
+				$condition_control = new ConditionRenderer($expression, $this->data, null);
+				if (!$condition_control->getResult()) {
+					$node->parentNode->removeChild($node);
+				}
+			}
+			$node->removeAttribute('c.if');
+		}
 	}
 
 	protected function applyUrl()

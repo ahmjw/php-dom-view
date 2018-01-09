@@ -51,8 +51,8 @@ class View extends Dom
 			$node->parentNode->removeChild($node);
 		}
 
-		$this->applyVisibility();
 		$this->applyVars();
+		$this->applyVisibility();
 		$this->applyUrl();
 		$this->separateStyle();
 		$this->separateScript();
