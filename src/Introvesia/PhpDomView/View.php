@@ -9,16 +9,15 @@ namespace Introvesia\PhpDomView;
 
 class View extends Dom
 {
-	private $content;
 	private $scripts = array();
 	private $styles = array();
 	private $layout_name;
 
-	public function __construct($content, array $data = array(), array $config = array())
+	public function __construct($name, array $data = array())
 	{
-		$this->content = $content;
+		$this->name = $name;
 		$this->data = $data;
-		$this->config = $config;
+		$this->loadDom('view_dir');
 	}
 
 	public function getLayoutName()
@@ -42,9 +41,21 @@ class View extends Dom
 		return html_entity_decode($content);
 	}
 
-	public function getData()
+	public function parse()
 	{
-		return $this->data;
+		// Read setting
+		$nodes = $this->dom->getElementsByTagName('c.config');
+		$node = $nodes->item(0);
+		if ($node) {
+			$this->layout_name = $node->getAttribute('layout');
+			$node->parentNode->removeChild($node);
+		}
+
+		$this->applyVisibility();
+		$this->applyVars();
+		$this->applyUrl();
+		$this->separateStyle();
+		$this->separateScript();
 	}
 
 	public function getScripts()
@@ -55,60 +66,6 @@ class View extends Dom
 	public function getStyles()
 	{
 		return $this->styles;
-	}
-
-	public function getContent($name)
-	{
-		$node = $this->dom->getElementById($name);
-		if ($node) {
-			$children = $node->childNodes;
-			$content = '';
-			foreach ($children as $child) {
-				$content .= $child->ownerDocument->saveHTML($child);
-			}
-			return $content;
-		}
-		return $this->content;
-	}
-
-	public function parse()
-	{
-		if (empty($this->content)) return;
-
-		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
-
-		$this->dom = new \DomDocument();
-		@$this->dom->loadHTML($content);
-		$this->xpath = new \DOMXPath($this->dom);
-
-		$this->applyVisibility();
-
-		foreach ($this->data as $key => $value) {
-			if (is_array($value)) {
-				$this->parseToElement($key, $value);
-			} else {
-				$results = @$this->xpath->query("//*[@c." . $key . "]");
-
-				if ($results->length > 0) {
-					// Get HTML
-					$node = $results->item(0);
-					$this->setElementContent($node, $value);
-				}
-			}
-		}
-
-		// Read setting
-		$nodes = $this->dom->getElementsByTagName('c.config');
-		$node = $nodes->item(0);
-		if ($node) {
-			$this->layout_name = $node->getAttribute('layout');
-			$parent = $node->parentNode;
-			$parent->removeChild($node);
-		}
-
-		$this->applyUrl();
-		$this->separateStyle();
-		$this->separateScript();
 	}
 
 	public function separateScript()
