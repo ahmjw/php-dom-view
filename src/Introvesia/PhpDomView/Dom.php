@@ -9,10 +9,43 @@ namespace Introvesia\PhpDomView;
 
 class Dom
 {
+	protected $name = 'index';
+	protected $content = '';
 	protected $dom;
 	protected $xpath;
 	protected $config = array();
 	protected $data = array();
+
+	protected function loadDom($dir_config_key)
+	{
+		$path = str_replace('/', DIRECTORY_SEPARATOR, Config::getData($dir_config_key)) . DIRECTORY_SEPARATOR . $this->name . '.html';
+		if (!file_exists($path)) {
+			throw new \Exception('Failed to load file: ' . $path, 500);
+		}
+		$this->content = file_get_contents($path);
+		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
+		$this->dom = new \DomDocument();
+		@$this->dom->loadHTML($content);
+		$this->xpath = new \DOMXPath($this->dom);
+	}
+
+	protected function applyVars()
+	{
+		foreach ($this->data as $key => $value) {
+			if (is_array($value)) {
+				$this->parseToElement($key, $value);
+			} else {
+				$results = @$this->xpath->query("//*[@c." . $key . "]");
+
+				if ($results->length > 0) {
+					// Get HTML
+					$node = $results->item(0);
+					$node->removeAttribute('c.' . $key);
+					$this->setElementContent($node, $value);
+				}
+			}
+		}
+	}
 
 	protected function setElementContent($node, $value)
 	{
@@ -35,10 +68,18 @@ class Dom
 			// Get HTML
 			$origin_node = $results->item(0);
 			$parent = $origin_node->parentNode;
-			unset($this->data[$key]);
 			// Apply data
 			foreach ($value as $key2 => $value2) {
 				@$node = $origin_node->cloneNode(true);
+				if ($node->hasAttribute('c.if')) {
+					$expression = $node->getAttribute('c.if');
+					$node->removeAttribute('c.if');
+					$condition_control = new ConditionRenderer($expression, $this->data, $value2);
+					if (!$condition_control->getResult()) {
+						continue;
+					}
+				}
+
 				$node_id = 'c.' . $key . $key2;
 				$node->setAttribute('id', $node_id);
 				$node->setAttribute('rel', $key2);
@@ -57,6 +98,7 @@ class Dom
 				} else {
 					$this->setElementContent($node, $value2);
 				}
+				$node->removeAttribute('c.' . $key);
 			}
 			$parent->removeChild($origin_node);
 		} else {
