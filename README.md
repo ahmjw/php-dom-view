@@ -76,8 +76,8 @@ include 'vendor/autoload.php';
 `view_dir` is the directory location to put yout HTML view files.
 ```
 Config::setData(array(
-	'layout_dir' => __DIR__ . '/layouts',
-	'view_dir' => __DIR__ . '/views'
+  'layout_dir' => __DIR__ . '/layouts',
+  'view_dir' => __DIR__ . '/views'
 ));
 ```
 ## Sample Data for View
