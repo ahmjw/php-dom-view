@@ -1,5 +1,42 @@
-# Renders output to HTML view via DOM
-Homepage http://chupoo.introvesia.com
+# About
+A PHP library to extract and write variables to HTML page by using special attributes. It makes the creation of view be neat and simple.
+
+# Author Profile
+Ahmad (<rawndummy@gmail.com>)
+
+Homepage: http://chupoo.introvesia.com
+
+# Requirements
+- PHP 5.3 or later
+- PSR-4 compatible autoloader
+- Composer
+
+# Installation
+This library is developed to be installed via Composer. Make sure you have installed Composer in your computer. You can download it at
+URL https://getcomposer.org/download/.
+
+Run this command below at command console.
+```
+composer require ahmjw/php-dom-view
+```
+Or make a file named as composer.json. Write down this code below.
+```
+{
+    "require": {
+        "ahmjw/chupoo-framework": "^1.0"
+    }
+}
+```
+Open the command console at the same directory with composer.json file. Execute this code below to install.
+```
+php composer.phar install
+```
+# Autoloading
+```
+<?php
+
+include 'vendor/autoload.php';
+```
 
 # Special HTML Tags
 ## c.content
@@ -10,53 +47,24 @@ You can call another HTML file by writing `<c.import name="menu"></c.import>` or
 By writing `<c.config layout="two-columns"></c.config>` or `<c.config layout="two-columns" />` in view HTML, it will execute layout as it declared. Write the name of HTML template in attribut `layout`. The value `two-columns` will call HTML template file with name "two-columns.html".
 ## c.widget
 It will mark the area as widget area. In it process, system will collect all widgets and store it to widget list. It will render widget HTML file when you send the widget information as feedback. To mark area to show it as widget, write `<c.widget name="sidebar"></c.widget>` or `<c.widget name="sidebar" />`. Write the widget key in attribut `name`. It will put the `name` value to widget list.
+# Special HTML Element attributes
+## c.if
+Defines an expression to control visibility of a HTML element. You can define the expression by following this format below.
+- Checks a key exists at global data: `var(x)`
+- Checks a key doesn't exist at global data: `!var(x)`
+- Checks a key has value equal to the right operand: `var(x) = 1`
+- Checks a key has value not equal to the right operand: `var(x) != 1`
+- Checks a key in an array by explore its depth: `var(x.y.z)`
+- Checks a key linking to current data used by current element: `var(.x)`
+**Note:** `x` is the key name in data. `1` is a value. You can define it as number or string.
 
-# Extracting Singular Variables to HTML
-You can extract variable to HTML by defining data with key and value. This library will render the data to HTML element by key. It compares key of data and the specified special attribute in a HTML element.
-## Code on controller
+# Example Codes
+## Set configuration
+`layout_dir` is the directory location to put your HTML layout files.
+`view_dir` is the directory location to put yout HTML view files.
 ```
-$data = array(
-  'name' => 'Adam Smith',
-  'nationality' => 'USA'
-);
-```
-## Code on HTML
-```
-<p c.name></p>
-<p c.nationality></p>
-```
-
-# Looping in HTML
-To make looping in a HTML tag, describe the data as array with specified key. Use the array key as an attribut in looping HTML element target.
-## Code in controller
-```
-$data = array(
-  'people' => array(
-    array(
-      'name' => 'Adam Smith',
-      'nationality' => 'USA'
-     ),
-    array(
-      'name' => 'Hiroko Yamada',
-      'nationality' => 'Japan'
-     ),
-    array(
-      'name' => 'Surya Wijaya',
-      'nationality' => 'Indonesia'
-     )
-   )
-);
-```
-## Looping in HTML
-```
-<table border="1">
-<tr>
-  <th>Name</th>
-  <th>Nationality</th>
-</tr>
-<tr c.people>
-  <td c.name></td>
-  <td c.nationality></td>
-</tr>
-</table>
+Config::setData(array(
+	'layout_dir' => __DIR__ . '/layouts',
+	'view_dir' => __DIR__ . '/views'
+));
 ```
