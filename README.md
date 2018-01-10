@@ -42,7 +42,9 @@ include 'vendor/autoload.php';
 ## c.content
 By writing `<c.content></c.content>` or `<c.content />` in your HTML template, it will replace it with view's content.
 ## c.import
-You can call another HTML file by writing `<c.import name="menu"></c.import>` or `<c.import name="menu" />`. Write the name of HTML template in attribut `name`. The value `menu` will call HTML template file with name "menu.html". It will replace it with the content of called HTML file.
+You can call other HTML file by writing `<c.import name="menu"></c.import>` or `<c.import name="menu" />`. Write the name of HTML template in attribut `name`. The value `menu` will call HTML template file with name "menu.html". It will replace it with the content of called HTML file.
+## c.partial
+You can call other HTML file by writing `<c.partial name="header"></c.import>` or `<c.partial name="header" />`. Cut off any part of your written layout and write it to other HTML file. You can use it when you need to share the same part of a layout to other layout. Write the name of HTML template in attribut `name`. The value `header` will call HTML template file with name "header.html". It will replace it with the content of called HTML file.
 ## c.config
 By writing `<c.config layout="two-columns"></c.config>` or `<c.config layout="two-columns" />` in view HTML, it will execute layout as it declared. Write the name of HTML template in attribut `layout`. The value `two-columns` will call HTML template file with name "two-columns.html".
 ## c.widget
@@ -204,6 +206,6 @@ are not from USA.
 ...
 ```
 # Difference Between c.import and c.partial
-- The HTML file which call by c.import must has perfect HTML structure.
-- The HTML file which call by c.partial must not has perfect HTML structure. You can cut off the part of a layout and separate it to
+- The HTML file which call by `c.import` must has perfect HTML structure.
+- The HTML file which call by `c.partial` must not has perfect HTML structure. You can cut off the part of a layout and separate it to
 other HTML file without make sure it has opening tag or closing tag.
