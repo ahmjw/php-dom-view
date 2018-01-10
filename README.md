@@ -146,7 +146,7 @@ print $layout->getOutput();
 </body>
 </html>
 ```
-## Widget `menu` HTML code
+## Widget HTML code (views/menu.html)
 ```
 <h3 c.menu_title></h3>
 <ul>
@@ -203,3 +203,7 @@ are not from USA.
 <c.partial name="header"></c.partial>
 ...
 ```
+# Difference Between c.import and c.partial
+- The HTML file which call by c.import must has perfect HTML structure.
+- The HTML file which call by c.partial must not has perfect HTML structure. You can cut off the part of a layout and separate it to
+other HTML file without make sure it has opening tag or closing tag.
