@@ -59,6 +59,16 @@ Defines an expression to control visibility of a HTML element. You can define th
 **Note:** `x` is the key name in data. `1` is a value. You can define it as number or string.
 
 # Example Codes
+## Autoloading and Class Definition
+```
+<?php
+
+use Introvesia\PhpDomView\View;
+use Introvesia\PhpDomView\Layout;
+use Introvesia\PhpDomView\Config;
+
+include 'vendor/autoload.php';
+```
 ## Set configuration
 `layout_dir` is the directory location to put your HTML layout files.
 `view_dir` is the directory location to put yout HTML view files.
@@ -67,4 +77,72 @@ Config::setData(array(
 	'layout_dir' => __DIR__ . '/layouts',
 	'view_dir' => __DIR__ . '/views'
 ));
+```
+## Sample Data for View
+```
+$view_data = array(
+  'title' => 'People',
+  'people' => array(
+    array(
+      'name' => 'Adam Smith',
+      'nationality' => 'USA'
+     ),
+    array(
+      'name' => 'Kenji Yamada',
+      'nationality' => 'Japan'
+     ),
+    array(
+      'name' => 'Surya Wijaya',
+      'nationality' => 'Indonesia'
+     )
+   )
+);
+```
+## Sample Data for Layout
+```
+$layout_data = array(
+  'meta_title' => 'My Blog',
+);
+```
+## Print the Output
+```
+$view = new View('index', $view_data);
+$layout = new Layout('index', $layout_data);
+$layout->parse($view);
+print $layout->getOutput();
+```
+## View HTML code (views/index.html)
+```
+<h1 c.title></h1>
+<table border="1" cellpadding="5">
+<tr>
+  <th>Name</th>
+  <th>Nationality</th>
+</tr>
+<tr c.people>
+  <td c.name>This is name column</td>
+  <td c.nationality></td>
+</tr>
+</table>
+```
+## Layout HTML code (layouts/index.html)
+```
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Site</title>
+</head>
+<body>
+  <table cellpadding="20">
+    <tr>
+      <td valign="top">
+      	<c.widget name="sidebar"></c.widget>
+      </td>
+      <td valign="top">
+      	<c.content></c.content>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
 ```
