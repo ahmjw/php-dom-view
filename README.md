@@ -56,7 +56,7 @@ Defines an expression to control visibility of a HTML element. You can define th
 - Checks a key doesn't exist at global data: `!var(x)`
 - Checks a key has value equal to the right operand: `var(x) = 1`
 - Checks a key has value not equal to the right operand: `var(x) != 1`
-- Checks a key in an array by explore its depth: `var(x.y.z)`
+- Checks a key in an array by exploring its depth: `var(x.y.z)`
 - Checks a key linking to current data used by current element: `var(.x)`
 **Note:** `x` is the key name in data. `1` is a value. You can define it as number or string.
 
