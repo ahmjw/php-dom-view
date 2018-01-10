@@ -59,7 +59,7 @@ Defines an expression to control visibility of a HTML element. You can define th
 **Note:** `x` is the key name in data. `1` is a value. You can define it as number or string.
 
 # Example Codes
-## Autoloading and Class Definition
+## Autoloading and Class Definition (index.php)
 ```
 <?php
 
@@ -104,7 +104,7 @@ $layout_data = array(
   'meta_title' => 'My Blog',
 );
 ```
-## Print the Output
+## Showing Output
 ```
 $view = new View('index', $view_data);
 $layout = new Layout('index', $layout_data);
@@ -145,4 +145,61 @@ print $layout->getOutput();
   </table>
 </body>
 </html>
+```
+## Widget `menu` HTML code
+```
+<h3 c.menu_title></h3>
+<ul>
+  <li c.links><a href="" c.link></a></li>
+</ul>
+```
+## Rendering View to Widget
+```
+$links = array(
+  array('link' => array('Link 1', 'href' => '#first')),
+  array('link' => array('Link 2', 'href' => '#second')),
+  array('link' => array('Link 3', 'href' => '#third')),
+);
+
+$layout->renderWidget('sidebar', array(
+  new View('menu', array(
+    'menu_title' => 'My Menu',
+    'links' => $links
+  )),
+));
+```
+## Defining Expression
+By adding attribut `c.if` to element `tr` with variable selector `c.people`, this sample code below will show only people who
+are not from USA.
+```
+...
+<tr c.people c.if="var(.nationality) != USA">
+...
+```
+## Making Layout Part (layouts/navbar.html)
+```
+<ul class="nav">
+  <li><a href="#home">Home</a></li>
+  <li><a href="#contact">Contact</a></li>
+  <li><a href="#about">About</a></li>
+</ul>
+```
+## Importing Other Layout
+```
+...
+<c.import name="navbar"></c.import>
+...
+```
+## Separating Layout to Partial Layout (layouts/header.html)
+```
+<!DOCTYPE html>
+<html>
+<head>
+	<title>My Site</title>
+</head>
+```
+## Calling Partial Layout
+```
+<c.partial name="header"></c.partial>
+...
 ```
