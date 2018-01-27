@@ -11,9 +11,16 @@ class Config
 {
 	private static $data = array();
 
-	public static function setData($data)
+	public static function setData()
 	{
-		self::$data = $data;
+		switch (func_num_args()) {
+			case 1:
+				self::$data = array_merge(self::$data, func_get_arg(0));
+				break;
+			case 2:
+				self::$data[func_get_arg(0)] = func_get_arg(1);
+				break;
+		}
 	}
 
 	public static function getData($key = null)
