@@ -3,7 +3,7 @@
     "description": "Renders output to HTML view via DOM",
     "homepage": "https://chupoo.introvesia.com",
     "keywords": ["php", "dom", "view"],
-    "license": "apache-2.0",
+    "license": "Apache-2.0",
     "authors": [
         {
             "name": "Ahmad",
