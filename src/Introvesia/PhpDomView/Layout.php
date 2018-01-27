@@ -10,15 +10,12 @@ namespace Introvesia\PhpDomView;
 class Layout extends Dom
 {
 	private $view;
-	private $scripts = array();
 	private $widget_keys = array();
 
 	public function __construct($name, array $data)
 	{
 		$this->name = $name;
 		$this->data = $data;
-		$this->loadDom('layout_dir');
-		$this->collectWidgetKeys();
 	}
 
 	public function getWidgetKeys()
@@ -73,9 +70,15 @@ class Layout extends Dom
 
 	public function parse($view = null)
 	{
+		$view->parse();
+		$this->loadDom('layout_dir');
+		$this->collectWidgetKeys();
+
 		$this->applyVars();
 		$this->applyVisibility();
 		$this->applyUrl();
+		$this->separateStyle();
+		$this->separateScript();
 
 		// Layout importing
 		$nodes = $this->dom->getElementsByTagName('c.import');
@@ -99,27 +102,31 @@ class Layout extends Dom
 
 	private function renderView($node, $view)
 	{
-		// Write content
-		$view->parse();
 		$element = $this->dom->createTextNode($view->getOutput());
 		$node->parentNode->insertBefore($element, $node);
 
-		// Apply styles
-		foreach ($view->getStyles() as $item_node) {
+		// Apply styles		
+		foreach ($this->styles as $item_node) {
 			$imported_node = $this->dom->importNode($item_node, true);
-			$head->appendChild($imported_node);
+			$this->head->appendChild($imported_node);
 		}
 
 		// Apply scripts		
 		foreach ($this->scripts as $item_node) {
 			$imported_node = $this->dom->importNode($item_node, true);
-			$body->appendChild($imported_node);
+			$this->body->appendChild($imported_node);
 		}
 
-		// Apply scripts		
+		// View apply styles
+		foreach ($view->getStyles() as $item_node) {
+			$imported_node = $this->dom->importNode($item_node, true);
+			$this->head->appendChild($imported_node);
+		}
+
+		// View apply scripts		
 		foreach ($view->getScripts() as $item_node) {
 			$imported_node = $this->dom->importNode($item_node, true);
-			$body->appendChild($imported_node);
+			$this->body->appendChild($imported_node);
 		}
 	}
 }
