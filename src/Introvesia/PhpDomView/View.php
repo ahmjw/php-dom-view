@@ -9,8 +9,6 @@ namespace Introvesia\PhpDomView;
 
 class View extends Dom
 {
-	private $scripts = array();
-	private $styles = array();
 	private $layout_name;
 
 	public function __construct($name, array $data = array())
@@ -25,11 +23,11 @@ class View extends Dom
 		return $this->layout_name;
 	}
 
-	public function getOutput()
+	public function getOutput($tag = 'body')
 	{
 		if (empty($this->content)) return;
 
-		$body = $this->dom->getElementsByTagName('body')->item(0);
+		$body = $this->dom->getElementsByTagName($tag)->item(0);
 		$children = $body->childNodes;
 		$content = '';
 		$i = 0;
@@ -47,8 +45,18 @@ class View extends Dom
 		$nodes = $this->dom->getElementsByTagName('c.config');
 		$node = $nodes->item(0);
 		if ($node) {
-			$this->layout_name = $node->getAttribute('layout');
+			Config::setData('layout_name', $node->getAttribute('layout'));
 			$node->parentNode->removeChild($node);
+		}
+
+		// View importing
+		$nodes = $this->dom->getElementsByTagName('c.import');
+		foreach ($nodes as $node_import) {
+			$parent = $node_import->parentNode;
+			$dom = new ViewPart($node_import->getAttribute('name'), array());
+			$dom->parse();
+			$element = $this->dom->createTextNode($dom->getOutput()); 
+			$parent->appendChild($element);
 		}
 
 		$this->applyVars();
@@ -56,61 +64,5 @@ class View extends Dom
 		$this->applyUrl();
 		$this->separateStyle();
 		$this->separateScript();
-	}
-
-	public function getScripts()
-	{
-		return $this->scripts;
-	}
-
-	public function getStyles()
-	{
-		return $this->styles;
-	}
-
-	public function separateScript()
-	{
-		if (empty($this->content)) return;
-
-		$items = array();
-		$nodes = $this->dom->getElementsByTagName('script');
-		foreach ($nodes as $node) {
-			$this->scripts[] = $node;
-			$items[] = $node;
-		}
-
-		foreach ($items as $node) {
-			$parent = $node->parentNode;
-			$parent->removeChild($node);
-		}
-	}
-
-	public function separateStyle()
-	{
-		if (empty($this->content)) return;
-
-		$items = array();
-		$nodes = $this->dom->getElementsByTagName('link');
-		foreach ($nodes as $node) {
-			$this->styles[] = $node;
-			$items[] = $node;
-		}
-
-		foreach ($items as $node) {
-			$parent = $node->parentNode;
-			$parent->removeChild($node);
-		}
-
-		$items = array();
-		$nodes = $this->dom->getElementsByTagName('style');
-		foreach ($nodes as $node) {
-			$this->styles[] = $node;
-			$items[] = $node;
-		}
-
-		foreach ($items as $node) {
-			$parent = $node->parentNode;
-			$parent->removeChild($node);
-		}
 	}
 }
