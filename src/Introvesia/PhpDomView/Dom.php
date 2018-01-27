@@ -12,31 +12,51 @@ class Dom
 	protected $name = 'index';
 	protected $content = '';
 	protected $dom;
+	protected $head;
+	protected $body;
 	protected $xpath;
-	protected $config = array();
 	protected $data = array();
+	protected $scripts = array();
+	protected $styles = array();
+	protected $layout_url;
+
+	public function getScripts()
+	{
+		return $this->scripts;
+	}
+
+	public function getStyles()
+	{
+		return $this->styles;
+	}
 
 	protected function loadDom($dir_config_key)
 	{
+		$layout_name = Config::getData('layout_name');
+		if (!empty($layout_name)) {
+			$this->name = $layout_name;
+		}
+		$this->layout_url = Config::getData('layout_url');
+		$this->base_url = Config::getData('base_url');
 		$dir = str_replace('/', DIRECTORY_SEPARATOR, Config::getData($dir_config_key)) . DIRECTORY_SEPARATOR;
 		$path = $dir . $this->name . '.html';
 		if (!file_exists($path)) {
 			throw new \Exception('Failed to load file: ' . $path, 500);
 		}
 		$this->content = file_get_contents($path);
-		if (get_class($this)=='Introvesia\PhpDomView\Layout'){
-			$this->content = preg_replace_callback('/<c\.partial\sname="(.+)?"><\/c\.partial>/', function($match) use($dir) {
-				$path = $dir . $match[1] . '.html';
-				if (!file_exists($path)) {
-					throw new \Exception('Failed to load file: ' . $path, 500);
-				}
-				return file_get_contents($path);
-			}, $this->content);
-		}
+		$this->content = preg_replace_callback('/<c\.partial\sname="(.+)?"><\/c\.partial>/', function($match) use($dir) {
+			$path = $dir . $match[1] . '.html';
+			if (!file_exists($path)) {
+				throw new \Exception('Failed to load file: ' . $path, 500);
+			}
+			return file_get_contents($path);
+		}, $this->content);
 		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
 		$this->dom = new \DomDocument();
 		@$this->dom->loadHTML($content);
 		$this->xpath = new \DOMXPath($this->dom);
+		$this->head = $this->dom->getElementsByTagName('head')[0];
+		$this->body = $this->dom->getElementsByTagName('body')[0];
 	}
 
 	protected function applyVars()
@@ -68,6 +88,8 @@ class Dom
 	{
 		if ($node->tagName == 'input') {
 			$node->setAttribute('value', $value);
+		} else if ($node->tagName == 'img') {
+			$node->setAttribute('src', $value);
 		} else if ($node->tagName == 'a') {
 			$node->setAttribute('href', $value);
 		} else if ($node->tagName == 'meta') {
@@ -147,21 +169,63 @@ class Dom
 		}
 	}
 
+	protected function separateScript()
+	{
+		$items = array();
+		$nodes = @$this->xpath->query("//body//script");
+		foreach ($nodes as $node) {
+			$this->scripts[] = $node;
+			$items[] = $node;
+		}
+
+		foreach ($items as $node) {
+			$parent = $node->parentNode;
+			$parent->removeChild($node);
+		}
+	}
+
+	protected function separateStyle()
+	{
+		$items = array();
+		$nodes = @$this->xpath->query("//body//link");
+		foreach ($nodes as $node) {
+			$this->styles[] = $node;
+			$items[] = $node;
+		}
+
+		foreach ($items as $node) {
+			$parent = $node->parentNode;
+			$parent->removeChild($node);
+		}
+
+		$items = array();
+		$nodes = @$this->xpath->query("//head//style");
+		foreach ($nodes as $node) {
+			$this->styles[] = $node;
+			$items[] = $node;
+		}
+
+		foreach ($items as $node) {
+			$parent = $node->parentNode;
+			$parent->removeChild($node);
+		}
+	}
+
 	protected function applyVisibility()
 	{
 		$results = @$this->xpath->query("//*[@c.if]");
 		if ($results->length > 0) {
-			// Get HTML
-			$node = $results->item(0);
-			if ($node->hasAttribute('c.if')) {
-				$expression = $node->getAttribute('c.if');
-				$node->removeAttribute('c.if');
-				$condition_control = new ConditionRenderer($expression, $this->data, null);
-				if (!$condition_control->getResult()) {
-					$node->parentNode->removeChild($node);
+			foreach ($results as $key => $node) {
+				if ($node->hasAttribute('c.if')) {
+					$expression = $node->getAttribute('c.if');
+					$node->removeAttribute('c.if');
+					$condition_control = new ConditionRenderer($expression, $this->data, null);
+					if (!$condition_control->getResult()) {
+						$node->parentNode->removeChild($node);
+					}
 				}
+				$node->removeAttribute('c.if');
 			}
-			$node->removeAttribute('c.if');
 		}
 	}
 
@@ -172,7 +236,7 @@ class Dom
 		foreach ($nodes as $node) {
 			$url = $node->getAttribute('href');
 			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['layout_url'] . '/' . trim($url, ':');
+				$url = $this->layout_url . '/' . trim($url, ':');
 				$node->setAttribute('href', $url);
 			}
 		}
@@ -181,7 +245,7 @@ class Dom
 		foreach ($nodes as $node) {
 			$url = $node->getAttribute('src');
 			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['layout_url'] . '/' . trim($url, ':');
+				$url = $this->layout_url . '/' . trim($url, ':');
 				$node->setAttribute('src', $url);
 			}
 		}
@@ -190,7 +254,7 @@ class Dom
 		foreach ($nodes as $node) {
 			$url = $node->getAttribute('src');
 			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['layout_url'] . '/' . trim($url, ':');
+				$url = $this->layout_url . '/' . trim($url, ':');
 				$node->setAttribute('src', $url);
 			}
 		}
@@ -199,7 +263,7 @@ class Dom
 		foreach ($nodes as $node) {
 			$url = $node->getAttribute('href');
 			if (strlen($url) > 0 && $url[0] == ':') {
-				$url = $this->config['base_url'] . '/' . trim($url, ':');
+				$url = $this->base_url . '/' . trim($url, ':');
 				$node->setAttribute('href', $url);
 			}
 		}
