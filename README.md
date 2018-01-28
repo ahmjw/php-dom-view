@@ -49,6 +49,9 @@ You can call other HTML file by writing `<c.partial name="header"></c.import>` o
 It will mark the area as widget area. In it process, system will collect all widgets and store it to widget list. It will render widget HTML file when you send the widget information as feedback. To mark area to show it as widget, write `<c.widget name="sidebar"></c.widget>` or `<c.widget name="sidebar" />`. Write the widget key in attribut `name`. It will put the `name` value to widget list.
 ## c.config
 By writing `<c.config layout="two-columns"></c.config>` or `<c.config layout="two-columns" />` in view HTML, it will execute layout as it declared. Write the name of HTML template in attribut `layout`. The value `two-columns` will call HTML template file with name "two-columns.html".
+## Configuration Attributes
+- `layout`, sets layout name for the view.
+- `separate-assets`, sets the styles and scripts use separation or not.
 # Special HTML Element attributes
 ## c.if
 Defines an expression to control visibility of a HTML element. You can define the expression by following this format below.
@@ -179,20 +182,6 @@ are not from USA.
 <tr c.people c.if="var(.nationality) != USA">
 ...
 ```
-## Making Layout Part (layouts/navbar.html)
-```
-<ul class="nav">
-  <li><a href="#home">Home</a></li>
-  <li><a href="#contact">Contact</a></li>
-  <li><a href="#about">About</a></li>
-</ul>
-```
-## Importing Other Layout
-```
-...
-<c.import name="navbar"></c.import>
-...
-```
 ## Separating Layout to Partial Layout (layouts/header.html)
 ```
 <!DOCTYPE html>
@@ -206,7 +195,3 @@ are not from USA.
 <c.partial name="header"></c.partial>
 ...
 ```
-# Difference Between c.import and c.partial
-- The HTML file which call by `c.import` must has perfect HTML structure.
-- The HTML file which call by `c.partial` must not has perfect HTML structure. You can cut off the part of a layout and separate it to
-other HTML file without make sure it has opening tag or closing tag.
