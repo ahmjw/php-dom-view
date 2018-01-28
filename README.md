@@ -1,5 +1,5 @@
 # About
-A PHP library to extract and write variables to HTML page by using special attributes. It makes the creation of view be neat and simple.
+A PHP library to extract and write variables to HTML page by using special attributes. It makes the creation of view be neat and simple. It completely separates view and controller. So, you don't need to write PHP code in view. It's the real view.
 
 # Author Profile
 Ahmad (<rawndummy@gmail.com>)
