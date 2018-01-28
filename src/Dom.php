@@ -209,6 +209,18 @@ class Dom
 			$parent = $node->parentNode;
 			$parent->removeChild($node);
 		}
+
+		$items = array();
+		$nodes = @$this->xpath->query("//body//style");
+		foreach ($nodes as $node) {
+			$this->styles[] = $node;
+			$items[] = $node;
+		}
+
+		foreach ($items as $node) {
+			$parent = $node->parentNode;
+			$parent->removeChild($node);
+		}
 	}
 
 	protected function applyVisibility()

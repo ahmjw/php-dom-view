@@ -10,12 +10,18 @@ namespace Introvesia\PhpDomView;
 class View extends Dom
 {
 	private $layout_name;
+	private $separate_assets = true;
 
 	public function __construct($name, array $data = array())
 	{
 		$this->name = $name;
 		$this->data = $data;
 		$this->loadDom('view_dir');
+	}
+
+	public function setSeparateAssets($value)
+	{
+		$this->separate_assets = $value;
 	}
 
 	public function getLayoutName()
@@ -27,12 +33,18 @@ class View extends Dom
 	{
 		if (empty($this->content)) return;
 
-		$body = $this->dom->getElementsByTagName($tag)->item(0);
-		$children = $body->childNodes;
 		$content = '';
-		$i = 0;
-		if ($children) {
-			foreach ($children as $child) {
+
+		if ($tag == 'body' && !$this->separate_assets) {
+			if ($this->head->childNodes->length > 0) {
+				foreach ($this->head->childNodes as $child) {
+					$content .= $child->ownerDocument->saveHTML($child);
+				}
+			}
+		}
+
+		if ($this->body->childNodes->length > 0) {
+			foreach ($this->body->childNodes as $child) {
 				$content .= $child->ownerDocument->saveHTML($child);
 			}
 		}
@@ -45,7 +57,12 @@ class View extends Dom
 		$nodes = $this->dom->getElementsByTagName('c.config');
 		$node = $nodes->item(0);
 		if ($node) {
-			Config::setData('layout_name', $node->getAttribute('layout'));
+			if ($node->hasAttribute('layout')) {
+				Config::setData('layout_name', $node->getAttribute('layout'));
+			}
+			if ($node->hasAttribute('separate-assets')) {
+				$this->separate_assets = $node->getAttribute('separate-assets') == 'true';
+			}
 			$node->parentNode->removeChild($node);
 		}
 
@@ -62,7 +79,10 @@ class View extends Dom
 		$this->applyVars();
 		$this->applyVisibility();
 		$this->applyUrl();
-		$this->separateStyle();
-		$this->separateScript();
+		
+		if ($this->separate_assets) {
+			$this->separateStyle();
+			$this->separateScript();
+		}
 	}
 }
