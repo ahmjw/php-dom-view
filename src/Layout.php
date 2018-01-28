@@ -80,16 +80,6 @@ class Layout extends Dom
 		$this->separateStyle();
 		$this->separateScript();
 
-		// Layout importing
-		$nodes = $this->dom->getElementsByTagName('c.import');
-		foreach ($nodes as $node_import) {
-			$parent = $node_import->parentNode;
-			$dom = new LayoutPart($node_import->getAttribute('name'), array());
-			$dom->parse();
-			$element = $this->dom->createTextNode($dom->getOutput()); 
-			$parent->appendChild($element);
-		}
-
 		// Yield content
 		$nodes = $this->dom->getElementsByTagName('c.content');
 		$node = $nodes->item(0);

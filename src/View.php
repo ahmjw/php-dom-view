@@ -66,16 +66,6 @@ class View extends Dom
 			$node->parentNode->removeChild($node);
 		}
 
-		// View importing
-		$nodes = $this->dom->getElementsByTagName('c.import');
-		foreach ($nodes as $node_import) {
-			$parent = $node_import->parentNode;
-			$dom = new ViewPart($node_import->getAttribute('name'), array());
-			$dom->parse();
-			$element = $this->dom->createTextNode($dom->getOutput()); 
-			$parent->appendChild($element);
-		}
-
 		$this->applyVars();
 		$this->applyVisibility();
 		$this->applyUrl();
