@@ -2,34 +2,115 @@
 
 /**
  * Japan, Gunma-ken, Maebashi-shi, January 7th 2018
+ *
  * @link http://chupoo.introvesia.com
  * @author Ahmad <rawndummy@gmail.com>
  */
 namespace Introvesia\PhpDomView;
 
+/**
+ * @package    Introvesia
+ * @subpackage PhpDomView
+ * @copyright  Copyright (c) 2016-2018 Introvesia (http://chupoo.introvesia.com)
+ * @version    v1.0.4
+ */
 class Dom
 {
+	/**
+     * View or layout name
+     *
+     * @var string
+     */
 	protected $name = 'index';
+
+	/**
+     * View or layout content
+     *
+     * @var string
+     */
 	protected $content = '';
+
+	/**
+     * DOM object
+     *
+     * @var object \DOMDocument
+     */
 	protected $dom;
+
+	/**
+     * Head part
+     *
+     * @var object \DOMDocument
+     */
 	protected $head;
+
+	/**
+     * Body part
+     *
+     * @var object \DOMDocument
+     */
 	protected $body;
+
+	/**
+     * XPath object for DOM querying
+     *
+     * @var object \DOMXPath
+     */
 	protected $xpath;
+
+	/**
+     * Shared data for parsing
+     *
+     * @var array
+     */
 	protected $data = array();
+
+	/**
+     * List of separated scripts
+     *
+     * @var array
+     */
 	protected $scripts = array();
+
+	/**
+     * List of separated styles
+     *
+     * @var array
+     */
 	protected $styles = array();
+
+	/**
+     * Layout URL
+     *
+     * @var array
+     */
 	protected $layout_url;
 
+	/**
+     * Get the separated scripts
+     *
+     * @return array
+     */
 	public function getScripts()
 	{
 		return $this->scripts;
 	}
 
+	/**
+     * Get the separated styles
+     *
+     * @return array
+     */
 	public function getStyles()
 	{
 		return $this->styles;
 	}
 
+	/**
+     * Load the DOM object of layout or view
+     *
+     * @param string $dir_config_key The key of directory in the config
+     */
 	protected function loadDom($dir_config_key)
 	{
 		$layout_name = Config::getData('layout_name');
@@ -52,13 +133,17 @@ class Dom
 			return file_get_contents($path);
 		}, $this->content);
 		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
-		$this->dom = new \DomDocument();
+		$this->dom = new \DOMDocument();
 		@$this->dom->loadHTML($content);
 		$this->xpath = new \DOMXPath($this->dom);
 		$this->head = $this->dom->getElementsByTagName('head')[0];
 		$this->body = $this->dom->getElementsByTagName('body')[0];
 	}
 
+	/**
+     * Apply all variables from shared data to nodes
+     *
+     */
 	protected function applyVars()
 	{
 		foreach ($this->data as $key => $value) {
@@ -84,6 +169,12 @@ class Dom
 		}
 	}
 
+	/**
+     * Set the content of a node
+     *
+     * @param object $node Target node
+     * @param string|int|float $value Value for node
+     */
 	protected function setElementContent($node, $value)
 	{
 		if ($node->tagName == 'input') {
@@ -99,6 +190,12 @@ class Dom
 		}
 	}
 
+	/**
+     * Parse each elements
+     *
+     * @param string $key Key name of the data
+     * @param string $value Value of the data
+     */
 	protected function parseToElement($key, $value)
 	{
 		$results = $this->xpath->query("//*[@c." . $key . "]");
@@ -144,6 +241,15 @@ class Dom
 		}
 	}
 
+	/**
+     * Parse to the nodes inside an element
+     *
+     * @param string $node_id ID of the element
+     * @param string $node_name Name of the element
+     * @param int $id ID for the element
+     * @param string $key Key of the data for element
+     * @param array|string|int $value Value of the data for the element
+     */
 	protected function parseToNode($node_id, $node_name, $id, $key, $value)
 	{
 		$query = "//*[@c." . $node_name . "][@id='" . $node_id . "']//*[@c." . $key . "]";
@@ -169,6 +275,10 @@ class Dom
 		}
 	}
 
+	/**
+     * Separate and collect the scripts
+     *
+     */
 	protected function separateScript()
 	{
 		$items = array();
@@ -184,6 +294,10 @@ class Dom
 		}
 	}
 
+	/**
+     * Separate and collect the styles
+     *
+     */
 	protected function separateStyle()
 	{
 		$items = array();
@@ -223,6 +337,10 @@ class Dom
 		}
 	}
 
+	/**
+     * Apply the visibility for non-tagged elements
+     *
+     */
 	protected function applyVisibility()
 	{
 		$results = @$this->xpath->query("//*[@c.if]");
@@ -241,6 +359,10 @@ class Dom
 		}
 	}
 
+	/**
+     * Apply the URL to all elements
+     *
+     */
 	protected function applyUrl()
 	{
 		// CSS

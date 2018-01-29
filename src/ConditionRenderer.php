@@ -2,15 +2,40 @@
 
 /**
  * Japan, Gunma-ken, Maebashi-shi, January 9th 2018
+ *
  * @link http://chupoo.introvesia.com
  * @author Ahmad <rawndummy@gmail.com>
  */
+
 namespace Introvesia\PhpDomView;
 
+/**
+ * @package    Introvesia
+ * @subpackage PhpDomView
+ * @copyright  Copyright (c) 2016-2018 Introvesia (http://chupoo.introvesia.com)
+ * @version    v1.0.4
+ */
 class ConditionRenderer
 {
+	/**
+     * Global data from controller
+     *
+     * @var array
+     */
 	private $global_data = array();
+
+	/**
+     * Current logic expression
+     *
+     * @var string
+     */
 	private $expression;
+
+	/**
+     * Result of logic expression
+     *
+     * @var bool
+     */
 	private $result = false;
 
 	public function __construct($expression, array $global_data, $current_data)
@@ -21,11 +46,21 @@ class ConditionRenderer
 		$this->parse();
 	}
 
+	/**
+     * Get result of logic expression
+     *
+     * @var bool
+     */
 	public function getResult()
 	{
 		return $this->result;
 	}
 
+	/**
+     * Parse logic expression to get result
+     *
+     * @return null
+     */
 	private function parse()
 	{
 		if (preg_match('/^var\s*\(\s*(.+)\s*\)\s*(!?)=\s*(.+)$/', $this->expression, $match)) {

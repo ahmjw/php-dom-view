@@ -2,27 +2,54 @@
 
 /**
  * Japan, Gunma-ken, Maebashi-shi, January 4th 2018
+ *
  * @link http://chupoo.introvesia.com
  * @author Ahmad <rawndummy@gmail.com>
  */
 namespace Introvesia\PhpDomView;
 
+/**
+ * @package    Introvesia
+ * @subpackage PhpDomView
+ * @copyright  Copyright (c) 2016-2018 Introvesia (http://chupoo.introvesia.com)
+ * @version    v1.0.4
+ */
 class Layout extends Dom
 {
-	private $view;
+	/**
+     * List of widget keys
+     *
+     * @var array
+     */
 	private $widget_keys = array();
 
+	/**
+     * Class constructor
+     *
+     * @param string $name Layout name
+     * @param array $data Shared data for parsing
+     */
 	public function __construct($name, array $data)
 	{
 		$this->name = $name;
 		$this->data = $data;
 	}
 
+	/**
+     * Get widget keys
+     *
+     * @return array
+     */
 	public function getWidgetKeys()
 	{
 		return array_keys($this->widget_keys);
 	}
 
+	/**
+     * Get final output of parsed layout
+     *
+     * @return string
+     */
 	public function getOutput()
 	{
 		if (empty($this->content)) return;
@@ -31,6 +58,12 @@ class Layout extends Dom
 		return html_entity_decode($content);
 	}
 
+	/**
+     * Append elements by HTML code after a node
+     *
+     * @param object $parent Target node
+     * @param string $content HTML code
+     */
 	private function appendHtml(\DOMNode $parent, $content) 
 	{
 		$temp = new \DOMDocument();
@@ -45,6 +78,10 @@ class Layout extends Dom
 		}
 	}
 
+	/**
+     * Collect widget keys from layout
+     *
+     */
 	private function collectWidgetKeys()
 	{
 		// Collecting widget keys
@@ -57,7 +94,13 @@ class Layout extends Dom
 		}
 	}
 
-	public function renderWidget($key, $data)
+	/**
+     * Render widget to the layout
+     *
+     * @param string $key Widget key name
+     * @param array $data List of widget
+     */
+	public function renderWidget($key, array $data)
 	{
 		$parent = $this->widget_keys[$key]->parentNode;
 		foreach ($data as $dom) {
@@ -68,6 +111,11 @@ class Layout extends Dom
 		$parent->removeChild($this->widget_keys[$key]);
 	}
 
+	/**
+     * Parse layout
+     *
+     * @param object $view Current executed view
+     */
 	public function parse($view = null)
 	{
 		$view->parse();
@@ -90,6 +138,12 @@ class Layout extends Dom
 		}
 	}
 
+	/**
+     * Render widget's view to a node
+     *
+     * @param object $node Target node
+     * @param object $view Node of widget's view
+     */
 	private function renderView($node, $view)
 	{
 		$element = $this->dom->createTextNode($view->getOutput());
