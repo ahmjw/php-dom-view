@@ -1,7 +1,9 @@
 <?php
-
 /**
- * Japan, Gunma-ken, Maebashi-shi, January 7th 2018
+ * This class use to parse HTML script, render PHP data to HTML script,
+ * and manipulate HTML element visibility and attributes.
+ *
+ * Japan, Gunma prefecture, Maebashi, January 7th 2018
  *
  * @link http://chupoo.introvesia.com
  * @author Ahmad <rawndummy@gmail.com>
@@ -126,15 +128,16 @@ class Dom
 			throw new \Exception('Failed to load file: ' . $path, 500);
 		}
 		$this->content = file_get_contents($path);
-		$this->content = preg_replace_callback('/<c\.partial\sname="(.+)?"><\/c\.partial>/', function($match) use($dir) {
+		$pattern = '/<c\.partial\sname="(.+)?"(?:\s*\/)?>(?:<\/c\.partial>)?/';
+		$this->content = preg_replace_callback($pattern, function($match) use($dir) {
 			$path = $dir . $match[1] . '.html';
 			if (!file_exists($path)) {
 				throw new \Exception('Failed to load file: ' . $path, 500);
 			}
 			return file_get_contents($path);
 		}, $this->content);
-		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
-		$content = $this->replaceGlobalVars($content);
+		$content = $this->replaceGlobalVars($this->content);
+		$content = mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8');
 		$this->dom = new \DOMDocument();
 		@$this->dom->loadHTML($content);
 		$this->xpath = new \DOMXPath($this->dom);
@@ -195,7 +198,7 @@ class Dom
 					if ($node->hasAttribute('c.if')) {
 						$expression = $node->getAttribute('c.if');
 						$node->removeAttribute('c.if');
-						$condition_control = new ConditionRenderer($expression, $this->data, $value);
+						$condition_control = new Condition($expression, $this->data, $value);
 						if (!$condition_control->getResult()) {
 							$node->parentNode->removeChild($node);
 						}
@@ -262,7 +265,7 @@ class Dom
 				if ($node->hasAttribute('c.if')) {
 					$expression = $node->getAttribute('c.if');
 					$node->removeAttribute('c.if');
-					$condition_control = new ConditionRenderer($expression, $this->data, $value2);
+					$condition_control = new Condition($expression, $this->data, $value2);
 					if (!$condition_control->getResult()) {
 						continue;
 					}
@@ -354,15 +357,40 @@ class Dom
 	protected function separateStyle()
 	{
 		$items = array();
-		$nodes = @$this->xpath->query("//body//link");
-		foreach ($nodes as $node) {
-			$this->styles[] = $node;
-			$items[] = $node;
-		}
+		if ($this instanceof Layout) {
+			$nodes = @$this->xpath->query("//body//link");
+			foreach ($nodes as $node) {
+				$this->styles[] = $node;
+				$items[] = $node;
+			}
 
-		foreach ($items as $node) {
-			$parent = $node->parentNode;
-			$parent->removeChild($node);
+			foreach ($items as $node) {
+				$parent = $node->parentNode;
+				$parent->removeChild($node);
+			}
+		} else {
+			$nodes = @$this->xpath->query("//head//link");
+			foreach ($nodes as $node) {
+				$this->styles[] = $node;
+				$items[] = $node;
+			}
+
+			foreach ($items as $node) {
+				$parent = $node->parentNode;
+				$parent->removeChild($node);
+			}
+
+			$items = array();
+			$nodes = @$this->xpath->query("//body//link");
+			foreach ($nodes as $node) {
+				$this->styles[] = $node;
+				$items[] = $node;
+			}
+
+			foreach ($items as $node) {
+				$parent = $node->parentNode;
+				$parent->removeChild($node);
+			}
 		}
 
 		$items = array();
@@ -402,7 +430,7 @@ class Dom
 				if ($node->hasAttribute('c.if')) {
 					$expression = $node->getAttribute('c.if');
 					$node->removeAttribute('c.if');
-					$condition_control = new ConditionRenderer($expression, $this->data, null);
+					$condition_control = new Condition($expression, $this->data, null);
 					if (!$condition_control->getResult()) {
 						$node->parentNode->removeChild($node);
 					}
