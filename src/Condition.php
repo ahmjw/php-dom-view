@@ -15,7 +15,7 @@ namespace Introvesia\PhpDomView;
  * @copyright  Copyright (c) 2016-2018 Introvesia (http://chupoo.introvesia.com)
  * @version    v1.0.4
  */
-class ConditionRenderer
+class Condition
 {
 	/**
      * Global data from controller
