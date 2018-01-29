@@ -6,6 +6,7 @@
  * @link http://chupoo.introvesia.com
  * @author Ahmad <rawndummy@gmail.com>
  */
+
 namespace Introvesia\PhpDomView;
 
 /**
@@ -133,11 +134,48 @@ class Dom
 			return file_get_contents($path);
 		}, $this->content);
 		$content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
+		$content = $this->replaceGlobalVars($content);
 		$this->dom = new \DOMDocument();
 		@$this->dom->loadHTML($content);
 		$this->xpath = new \DOMXPath($this->dom);
 		$this->head = $this->dom->getElementsByTagName('head')[0];
 		$this->body = $this->dom->getElementsByTagName('body')[0];
+	}
+
+	/**
+	 * Replace the formatted code in HTML with global shared data
+	 *
+	 * @param string $content The layout or view content
+	 */
+	private function replaceGlobalVars($content)
+	{
+		// The formatted code without dot prefix
+		$pattern = '/\{\{([^\.].*?)\}\}/';
+		$callback = function($match) {
+			$var_name = $match[1];
+			return isset($this->data[$var_name]) ? $this->data[$var_name] : null;
+		};
+		return preg_replace_callback($pattern, $callback, $content);
+	}
+
+	/**
+	 * Replace the formatted code in HTML inside looping
+	 *
+	 * @param string $element The target element
+	 * @param array $data The current data for element
+	 */
+	private function replaceLoopingVars($element, $data)
+	{
+		$content = urldecode($element->ownerDocument->saveHTML($element));
+		$content = preg_replace('/(<.*?c\.)([a-zA-Z0-9_]+)(.*?>)/', '$1$2=""$3', $content);
+		// The formatted code without dot prefix
+		$pattern = '/\{\{\.(.*?)\}\}/';
+		$callback = function($match) use($data) {
+			$var_name = $match[1];
+			return isset($data[$var_name]) ? $data[$var_name] : null;
+		};
+		$content = preg_replace_callback($pattern, $callback, $content);
+		$this->setInnerHTML($element, $content);
 	}
 
 	/**
@@ -191,6 +229,20 @@ class Dom
 	}
 
 	/**
+	 * Set HTML content of an element
+	 * @param object $element Element node
+	 * @param string $html New HTML code
+	 */
+	private function setInnerHTML($element, $html)
+	{
+	    $fragment = $element->ownerDocument->createDocumentFragment();
+	    $fragment->appendXML($html);
+	    while ($element->hasChildNodes())
+	        $element->removeChild($element->firstChild);
+	    @$element->appendChild($fragment);
+	}
+
+	/**
      * Parse each elements
      *
      * @param string $key Key name of the data
@@ -229,6 +281,7 @@ class Dom
 				}
 				
 				if (is_array($value2)) {
+					$this->replaceLoopingVars($node, $value2);
 					foreach ($value2 as $key3 => $value3) {
 						$this->parseToNode($node_id, $key, $key2, $key3, $value3);
 					}
